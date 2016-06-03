@@ -1,0 +1,85 @@
+<DIV id="myDiv1" style="float:top;"></DIV>
+ 
+<script src="https://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+ 
+<script>
+ 
+progressStrip("#myDiv1", "Backlog",40,"#7F7F7F","Pipeline",20,"#C00000","Progress",14,"#FFC000","Complete",17,"#92D050");
+ 
+function progressStrip (target, val1, num1, col1, val2, num2, col2, val3, num3, col3, val4, num4, col4) {
+ 
+valueFont = 14;
+var x = 0;
+var y = valueFont;
+barH = 20;
+ 
+bodyRad = 5;
+bodyArc = 5;
+ 
+var total = +num1 + +num2 + +num3 + +num4;
+ 
+//svgW = window.innerWidth - ( 2 * bodyArc ) ;
+// Hack here to fit page within Wiki Div
+svgW = document.getElementById('dokuwiki__content').offsetWidth * .8;
+ 
+ 
+svgH = barH + ( 2* bodyArc ) + y;
+ 
+svg = d3.select(target).append("svg")
+          .attr("width", svgW)
+          .attr("height",svgH);
+ 
+barW = ( +num1 / +total ) * svgW ;
+progressStripBar(x, y+bodyArc, barW - ( 2* bodyArc) , col1, val1, num1 );
+ 
+x = x + barW;
+barW = ( +num2 / +total ) * svgW;
+progressStripBar(x, y+bodyArc, barW - ( 2* bodyArc), col2, val2, num2 );
+ 
+x = x + barW;
+barW = ( +num3 / +total ) * svgW;
+progressStripBar(x, y+bodyArc, barW - ( 2* bodyArc), col3, val3, num3 );
+ 
+x = x + barW;
+barW = ( +num4 / +total ) * svgW;
+progressStripBar(x, y+bodyArc, barW - ( 2* bodyArc), col4, val4, num4);
+ 
+}
+ 
+ 
+function progressStripBar (x, y, width, color, title, value ) {
+ 
+var d = "M" + x + "," + y;
+d += " a" + bodyRad + "," + bodyRad + " 0 0,1 " + bodyArc + "," + -bodyArc;
+d += " l" + width + ",0";
+d += " a" + bodyRad + "," + bodyRad + " 0 0,1 " + bodyArc + "," + bodyArc;
+d += " l0," + barH ;
+d += " a" + bodyRad + "," + bodyRad + " 0 0,1 " + -bodyArc + "," + bodyArc;
+d += " l" + -width  + ",0";
+d += " a" + bodyRad + "," + bodyRad + " 0 0,1 " + -bodyArc + "," + -bodyArc;
+svg.append("path")          // attach a path
+   .style("stroke", color)  // colour the line
+   .style("fill", color)     // remove any fill colour
+   .attr("d",d);
+ 
+svg.append("text")
+   .text(title)
+   .style("fill","#EEEEEE")
+   .style("font-size","#EEEEEE")
+   .style("text-anchor","left")
+   .style("font-size",20)
+   .attr("x", x + 10)
+   .attr("y", barH + ( y - bodyArc ));
+ 
+ 
+svg.append("text")
+   .text(value)
+   .style("fill","#444444")
+   .style("font-size","#444444")
+   .style("text-anchor","end")
+   .style("font-size",valueFont)
+   .attr("x", x + width)
+   .attr("y", 10);
+}
+ 
+</script>

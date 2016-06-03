@@ -1,0 +1,141 @@
+<DIV id="myDiv1" style="float:left;"></DIV>
+<DIV style="float:left;">&nbsp;</DIV>
+<DIV id="myDiv2" style="float:top;"></DIV>
+ 
+<script src="https://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+ 
+<script>
+ 
+var height=110;
+// targetDiv, height, title, image, imagexAdj, imageyAdj, head1, head2, value1, value2
+infoDualValue("#myDiv1",height,"Title 1","/wiki/lib/tpl/dokuwiki/images/logo.png",4,-4,"Last Week","This Week","132", "912");
+infoDualValue("#myDiv2",height,"Title 2","/wiki/lib/tpl/dokuwiki/images/logo.png",4,-4,"Last Week","This Week","10%", "21%");
+ 
+ 
+function infoDualValue( divTarget, height, title, image, imageXAdj, imageYAdj, head1, head2, value1, value2)
+{
+ 
+var bodyH = height;
+var bodyW = bodyH *2;
+var bodyRad = bodyH / 15;
+var bodyArc = bodyH / 15;
+ 
+var topH = bodyH / 4;
+var barH = bodyH / 5;
+ 
+var bgcolor = "#F2F2F2";
+var topcolor = "#D9D9D9";
+var barcolor = "#444444";
+ 
+var titlecolor = "#444444";
+ 
+var headcolor = "#EEEEEE";
+var headsize = topH / 2;
+ 
+var valuecolor = "#00B0F0";
+var valuesize = bodyH / 3;
+ 
+var x = 0;
+var y = bodyArc;
+ 
+var svgW = bodyW + (2 * bodyArc);
+var svgH = bodyH + (2 * bodyArc);
+var  svg = d3.select(divTarget).append("svg")
+          .attr("width", svgW)
+          .attr("height",svgH);
+ 
+// Draw the main box
+var d = "M" + x + "," + y;
+d += " a" + bodyRad + "," + bodyRad + " 0 0,1 " + bodyArc + "," + -bodyArc;
+d += " l" + bodyW + ",0";
+d += " a" + bodyRad + "," + bodyRad + " 0 0,1 " + bodyArc + "," + bodyArc;
+d += " l0," + bodyH;
+d += " a" + bodyRad + "," + bodyRad + " 0 0,1 " + -bodyArc + "," + bodyArc;
+d += " l" + -bodyW + ",0";
+d += " a" + bodyRad + "," + bodyRad + " 0 0,1 " + -bodyArc + "," + -bodyArc;
+svg.append("path")          // attach a path
+   .style("stroke", bgcolor )  // colour the line
+   .style("fill", bgcolor)     // remove any fill colour
+   .attr("d",d);
+ 
+// Draw the top box
+var d = "M" + x + "," + y;
+d += " a" + bodyRad + "," + bodyRad + " 0 0,1 " + bodyArc + "," + -bodyArc;
+d += " l" + bodyW + ",0";
+d += " a" + bodyRad + "," + bodyRad + " 0 0,1 " + bodyArc + "," + bodyArc;
+d += " l0," + topH;
+d += " l" + - (bodyW + ( 2* bodyArc) ) + ",0";
+svg.append("path")          // attach a path
+   .style("stroke", topcolor )  // colour the line
+   .style("fill", topcolor)     // remove any fill colour
+   .attr("d",d);
+ 
+// Draw the top box
+var d = "M" + x + "," + ( y + topH );
+d += " l" + ( bodyW + ( 2 * bodyArc)) + ",0";
+d += " l0," + barH;
+d += " l" + - (bodyW + ( 2* bodyArc) ) + ",0";
+svg.append("path")          // attach a path
+   .style("stroke", barcolor )  // colour the line
+   .style("fill", barcolor)     // remove any fill colour
+   .attr("d",d);
+ 
+// Add the Title
+var text = svg.append("text")
+   .text(title)
+   .style("fill",titlecolor)
+   .style("font-size",1)
+   .style("text-anchor","middle")
+   .attr("x", ( ( bodyW + topH )  / 2 ) )
+   .attr("y", topH );
+// Scale text to fit within the box
+var scaleMin = Math.min(bodyW/text.node().getBBox().width, topH / text.node().getBBox().height);
+text.style("font-size", scaleMin );
+ 
+// Add the image
+svg.append("svg:image")
+   .attr("xlink:href", image)
+   .attr("x",x + imageXAdj)
+   .attr("y",y + imageYAdj)
+   .attr("width",topH )
+   .attr("height",topH );
+ 
+// Add the Heading 1
+svg.append("text")
+   .text(head1)
+   .style("fill",headcolor)
+   .style("font-size",headsize)
+   .style("text-anchor","middle")
+   .attr("x", svgW * 0.25 )
+   .attr("y", bodyArc + topH + ( barH * .75 ) );
+ 
+// Add the Heading 2
+svg.append("text")
+   .text(head2)
+   .style("fill",headcolor)
+   .style("font-size",headsize)
+   .style("text-anchor","middle")
+   .attr("x", svgW * 0.75 )
+   .attr("y", bodyArc + topH + ( barH * .75 ) );
+ 
+// Add Value 1
+svg.append("text")
+   .text(value1)
+   .style("fill",valuecolor)
+   .style("font-size", valuesize)
+   .style("text-anchor","middle")
+   .attr("x", svgW * 0.25 )
+   .attr("y", bodyArc + ( bodyH * .85 ) );
+ 
+// Add Value 2
+svg.append("text")
+   .text(value2)
+   .style("fill",valuecolor)
+   .style("font-size",valuesize)
+   .style("text-anchor","middle")
+   .attr("x", svgW * 0.75 )
+   .attr("y", bodyArc + ( bodyH * .85 ) );
+ 
+}
+ 
+</script>

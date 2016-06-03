@@ -1,0 +1,171 @@
+<style>
+ 
+body {
+  background: #fff;
+  font: 10px sans-serif;
+  margin: auto;
+  position: relative;
+  width: 1180px;
+}
+ 
+text {
+  text-anchor: start;
+}
+ 
+.axis {
+  shape-rendering: crispEdges;
+}
+ 
+.x.axis line, y.axis line {
+  stroke: #fff;
+  fill: #fff;
+  stroke: black;
+  stroke-width: 1px;
+}
+ 
+.x.axis .minor, .y.axis .minor {
+  stroke-opacity: .5;
+  stroke: black;
+  fill: #fff;
+  stroke-width: 1px;
+}
+ 
+.x.axis path, .y.axis path {
+  stroke: black;
+  stroke-width: 1px;
+  fill: #fff;
+}
+ 
+#charts {
+  position: absolute;
+  right: 4px;
+  bottom: 4px;
+  color: #ddd;
+}
+ 
+</style>
+ 
+<DIV id="myDiv1" style="float:left;"></DIV>
+<DIV id="myDiv2" style="float:top;"></DIV>
+ 
+<script src="https://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+ 
+<script>
+ 
+// Target, Title, EndTarget, TargetProgress (expected), Current, Image
+donut("#myDiv1","Title 1",70,59,31,"/wiki/lib/tpl/dokuwiki/images/logo.png");
+donut("#myDiv2","Title 2",40,19,31,"/wiki/lib/tpl/dokuwiki/images/logo.png");
+ 
+function donut(targetS, l1, v1, v2, v3, i1, b1) {
+ 
+  width = 200;
+  height = 200;
+  label = l1;
+  target = v1;
+  targetProgress = v2;
+  actual = v3;
+  image = i1;
+  baseline = b1;
+ 
+  colors = ["#11ccff","#bbbbbb","#002244"];
+ 
+  spacing = .049;
+  bandsize = 0.03;
+  bands = 6;
+  startband = 3;
+  startband = startband / 10;
+ 
+  radius = Math.min(width, height) / (1 + bands / 10 );
+ 
+  svgS = d3.select(targetS).append("svg")
+    .attr("width", width*1.3)
+    .attr("height", height)
+    .append("g")
+    .attr("transform", "translate(" + width / 2 + "," + height / 2 + ")");
+ 
+  arc = d3.svg.arc()
+    .startAngle(0)
+    .endAngle(function(d) { return d.value * 2 * Math.PI; })
+    .innerRadius(function(d) { return ( d.index + startband) * radius ; })
+    .outerRadius(function(d) { return ( d.index + spacing + startband)  * radius; });
+ 
+  field = svgS.selectAll("g")
+    .data(fields(target,targetProgress,actual))
+    .enter().append("g");
+ 
+  field.append("path");
+  field.append("text");
+  field.append("line");
+  field.append("label");
+ 
+  field.append("svg:image")
+    .attr("xlink:href", image)
+    .attr("y",-(height / bands))
+    .attr("x",-(width / bands) )
+    .attr("width",width / (bands / 2))
+    .attr("height",height / (bands / 2));
+ 
+  chart();
+ 
+}
+ 
+function chart() {
+  field = field
+      .each(function(d) { this._value = d.value; })
+      .data(fields(target,targetProgress,actual))
+      .each(function(d) { d.previousValue = this._value; });
+ 
+  field.select("path")
+    .transition()
+      .ease("elastic")
+      .attrTween("d", arcTween)
+      .style("fill", function(d,i) { return colors[i]; });
+ 
+  field.select("text")
+      .text(function(d) { return d.text; })
+      .transition()
+      .style("font-size",12)
+      .style("fill", function(d,i) { return colors[i]; })
+      .attr("x",(startband  + spacing) / 2  * radius + (width / 3.4) )
+      .attr("y", function(d) { return - ( 5 * d.index * ( startband + spacing ) ) * radius  }) ;
+ 
+  field.append("text")
+      .text(label)
+      .transition()
+      .style("font-size",14)
+      .style("fill", "#777777")
+      .style("text-anchor","middle")
+      .attr("x", 0 )
+      .attr("y", height/2.1 );
+ 
+  field.select("line")
+    .style("stroke", function(d,i) { return colors[i]; })
+    .attr("x1",  (startband  + spacing) / 2  * radius + (width / 10) + 10)
+    .attr("x2",  (startband  + spacing + 1.7) / 2  * radius + (width / 10 ))
+    .attr("y1", function(d) { return - ( 5 * d.index * ( startband + spacing ) ) * radius + 10 })
+    .attr("y2", function(d) { return - ( 5 * d.index * ( startband + spacing ) ) * radius + 10 })
+ 
+}
+ 
+function arcTween(d) {
+  var i = d3.interpolateNumber(d.previousValue, d.value);
+  return function(t) { d.value = i(t); return arc(d); };
+}
+ 
+function fields(target,targetProgress,actual) {
+  if ( baseline != null ) {
+    return [
+      {index: .3, text: "Target " + target + "%",    value: 1},
+      {index: .2, text: "Target Progess " + targetProgress + "%",   value: (baseline - targetProgress) / ( baseline - target )  },
+      {index: .1, text: "Actual " + actual + "%",  value: (baseline - actual) / (baseline - target )}
+    ];
+  } else {
+    return [
+      {index: .3, text: "Target " + target + "%",    value: target/target},
+      {index: .2, text: "Target Progess " + targetProgress + "%",   value: targetProgress /target},
+      {index: .1, text: "Actual " + actual + "%",  value: actual/target}
+    ];
+  }
+}
+ 
+</script>

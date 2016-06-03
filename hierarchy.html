@@ -1,0 +1,233 @@
+<style>
+  body {
+    font:10px sans-serif;
+  }
+  
+  .node {
+    cursos: pointer;
+  }
+  
+  .node circle {
+    fill: #fff;
+	stroke:  steelblue;
+	stroke-width: 1.5px;
+  }
+
+  .node text {
+    font: 10px sans-serif;
+  }  
+  
+  .link {
+    fill:none;
+    stroke: #cef;
+    stroke-width:1.5px;
+  }
+  
+</style>
+
+Drillable tree showing a fictional hierarchy <BR>
+Company -> Service -> Support Team -> Team Member<BR>
+
+<DIV id="myDiv"></DIV>
+
+<script src="/js/d3.min.js"></script>
+
+<script>
+
+var data = [
+{company:'appley', service:'selling',team:'sales-support',member:'sally'},
+{company:'appley', service:'selling',team:'sales-support',member:'fred'},
+{company:'appley', service:'selling',team:'sales-tech',member:'zak'},
+{company:'appley', service:'billing',team:'billing-admin',member:'bill'},
+{company:'appley', service:'billing',team:'billing-admin',member:'william'},
+{company:'appley', service:'advertising',team:'ad-suppport',member:'adam'},
+{company:'googley', service:'selling',team:'sales-support',member:'peter'},
+{company:'googley', service:'selling',team:'sales-tech',member:'lee'},
+{company:'googley', service:'billing',team:'billing-support',member:'peter'},
+{company:'googley', service:'billing',team:'billing-support',member:'john'},
+{company:'googley', service:'billing',team:'billing-support',member:'mike'},
+{company:'googley', service:'advertising',team:'ad-support',member:'david'},
+{company:'amazonian', service:'advertising',team:'adverts-team',member:'pauline'},
+{company:'amazonian', service:'billing',team:'billing-team',member:'daisy'},
+{company:'amazonian', service:'selling',team:'sales-uk',member:'richard'},
+{company:'amazonian', service:'selling',team:'sales-uk',member:'jeff'},
+{company:'amazonian', service:'selling',team:'sales-us',member:'bev'},
+{company:'amazonian', service:'selling',team:'sales-us',member:'lynn'}
+];
+
+// The hierarchy is company->service->team->member
+//  console.log(data);
+  
+var nested_data = { "key" : "Companies", "values":
+  d3.nest()
+  .key(function(d)  { return d.company; })
+  .key(function(d)  { return d.service; })
+  .key(function(d)  { return d.team; })
+  .key(function(d)  { return d.member; })
+  .entries(data)
+  };
+
+
+var root = { "name": "Companies", "children":
+    nested_data.values.map( function(service){
+      return { "name": service.key, "children": 
+         service.values.map( function(team){
+            return { "name": team.key, "children": 
+               team.values.map(function(member){
+                  return { "name": member.key, "children": member.values };
+               }) 
+            };
+         }) 
+      }; 
+    }) 
+}; 
+		
+// Add the data to the tree
+root.key = "Companies";
+root.values = nested_data;	
+
+console.log(root);
+
+
+var levels = [ "*", "company", "service", "team", "member" ];
+ 
+var margin = {top: 20, right: 120, bottom: 20, left: 120},
+    width = window.innerWidth - margin.right - margin.left,
+    height = 800 - margin.top - margin.bottom;
+ 
+// Set the spacing between horizontal nodes so that fill the page width
+var spacing = width /8;
+ 
+var i = 0,
+    duration = 750,
+    root;
+ 
+var tree = d3.layout.tree()
+    .size([height, width]);
+ 
+var diagonal = d3.svg.diagonal()
+    .projection(function(d) { return [d.y, d.x]; });
+ 
+var svg = d3.select("#myDiv").append("svg")
+    .attr("width", width + margin.right + margin.left)
+    .attr("height", height + margin.top + margin.bottom)
+    .append("g")
+    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+ 
+  root.x0 = height / 4;
+  root.y0 = 0;
+  
+function update(source) {
+ 
+  // Compute the new tree layout.
+  var nodes = tree.nodes(root).reverse(),
+      links = tree.links(nodes);
+ 
+  // Set x position for node depending on number of perent nodes
+  nodes.forEach(function(d) { d.y = d.depth * spacing ; });
+ 
+  // Update the nodes.
+  var node = svg.selectAll("g.node")
+      .data(nodes, function(d) { return d.id || (d.id = ++i); });
+ 
+  // Enter any new nodes at the parent's previous position.
+  var nodeEnter = node.enter().append("g")
+      .attr("class", "node")
+      .attr("transform", function(d) { return "translate(" + source.y0 + "," + source.x0 + ")"; })
+      .on("click", click);
+ 
+ 
+  nodeEnter.append("circle")
+      .attr("r", 1e-6)
+ 
+      .style("fill", function(d) { return d._children ? "lightsteelblue" : "#fff"; });
+ 
+  nodeEnter.append("text")
+      .attr("x", function(d) { return d.children || d._children ? -10 : -10; })
+      .attr("dy", ".35em")
+      .attr("text-anchor", function(d) { return "end"; })
+      .text(function(d) { return d.name || d.name ? d.name : d.key ;})
+      .style("fill-opacity", 1e-6);
+ 
+  // Transition nodes to their new position.
+  var nodeUpdate = node.transition()
+      .duration(duration)
+      .attr("transform", function(d) { return "translate(" + d.y + "," + d.x + ")"; });
+ 
+  nodeUpdate.select("circle")
+      .attr("r", 4.5)
+      .style("fill", function(d) { return d._children ? "lightsteelblue" : "#fff"; });
+ 
+  nodeUpdate.select("text")
+      .style("fill-opacity", 1);
+ 
+  // Transition exiting nodes to the parent's new position.
+  var nodeExit = node.exit().transition()
+      .duration(duration)
+      .attr("transform", function(d) { return "translate(" + source.y + "," + source.x + ")"; })
+      .remove();
+ 
+  nodeExit.select("circle")
+      .attr("r", 1e-6);
+ 
+  nodeExit.select("text")
+      .style("fill-opacity", 1e-6);
+ 
+  // Update the links.
+  var link = svg.selectAll("path.link")
+      .data(links, function(d) { return d.target.id; });
+ 
+  // Enter any new links at the parent's previous position.
+  link.enter().insert("path", "g")
+      .attr("class", "link")
+      .attr("d", function(d) {
+        var o = {x: source.x0, y: source.y0};
+        return diagonal({source: o, target: o});
+      });
+ 
+  // Transition links to their new position.
+  link.transition()
+      .duration(duration)
+      .attr("d", diagonal);
+ 
+  // Transition exiting nodes to the parent's new position.
+  link.exit().transition()
+      .duration(duration)
+      .attr("d", function(d) {
+        var o = {x: source.x, y: source.y};
+        return diagonal({source: o, target: o});
+      })
+      .remove();
+ 
+  // Stash the old positions for transition.
+  nodes.forEach(function(d) {
+    d.x0 = d.x;
+    d.y0 = d.y;
+  });
+}
+ 
+// Toggle children on click.
+function click(d) {
+  if (d.children) {
+    d._children = d.children;
+    d.children = null;
+  } else {
+    d.children = d._children;
+    d._children = null;
+  }
+  update(d);
+}
+ 
+  function collapse(d) {
+    if (d.children) {
+      d._children = d.children;
+      d._children.forEach(collapse);
+      d.children = null;
+    }
+  }
+ 
+  root.children.forEach(collapse);
+  update(root);
+
+
+</script>

@@ -1,0 +1,221 @@
+<DIV id="myDiv" style="float:top;"></DIV>
+ 
+<script src="https://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+ 
+<DIV id="myDiv" style="padding-left:10px;padding-top:10px;vertical-align:middle;float:left;display:inline-block;">
+</DIV>
+ 
+ 
+<script>
+var height=150;
+// TargetDiv, Dial Height, Title, SubTitle, CurrentValue, TargetProgress, FinalTarget, ValueType (Pct-absolute, Pct-Relative)
+speedo("#myDiv", height, "Title 1","Subtitle A",40, 35, 80, "pctabs");
+speedo("#myDiv", height, "Title 2","Subtitle B",70, 35, 60, "pctabs");
+ 
+ 
+function speedo (targetDiv, height ,title,subtitle,current,progress,target,measure) {
+ 
+  var width = height * 1.8;
+ 
+  // Convert passed values to integers otherwise labels can get very messy
+  current = Math.floor(current);
+  progress = Math.floor(progress);
+  target = Math.floor(target);
+ 
+  var t = 2 * Math.PI;
+ 
+  var lightgrey = "#ccccdd",
+      green = "#66dd66",
+      blue = "#00b0f0",
+      grey = "#888888";
+ 
+  var titleFontSize = height / 10;
+  var subtitleFontSize = height / 10;
+ 
+  var needleLine = grey;
+      needleFill = "#dddddd",
+      needleWidth = height/25,
+      needleHubWidth = height / 30;
+ 
+  var total = current + progress + target;
+ 
+  var startAngle = -110;
+  var startPct = startAngle / 360;
+  var angleRange = 2 * -startAngle;
+ 
+  // If values provides are "counts", then work out what one count will be
+  var onePct = ( 2 * -startPct ) / total;
+  var oneDegree = angleRange / total;
+ 
+  var targetSize = target;
+  // Otherwise work out as absolute percentage values.  e.g. 60%, 70%, 90%. Target must be higher than target
+  if ( measure == "pctabs" ) {
+    onePct = ( 2 * -startPct ) / 100 ;
+    oneDegree = ( 2 * -startAngle ) / 100;
+    targetSize = targetSize - progress;
+  }
+  // e.g. 60%, 10%, 20%.  Start at 60%, add 10%, add 20%
+  else if ( measure == "pctrel" ) {
+    var onePct = ( 2 * -startPct ) / 100 ;
+  }
+ 
+  //console.log("current:" + current + " progress:" + progress + " target:" + target + " onePct:" + onePct);
+ 
+  var radiusWidth = height / 10,
+      padding = titleFontSize + 6;
+      paddingI = height / 6;
+ 
+  var outerRadius = height - padding,
+      innerRadius = outerRadius - radiusWidth + 1;
+ 
+  var outerRadiusI = height  - padding - paddingI;
+      innerRadiusI = 0;
+ 
+  var outerRadiusH = height / 20;
+      innerRadiusH = 0;
+ 
+  var labelSize = height / 15,
+      labelOuter = - (innerRadius - outerRadiusI )  - 2;
+ 
+  var needleLength = innerRadius - 10;
+ 
+//console.log("w:" + width + " h:" + height + " rO:" + outerRadius );
+  var svg = d3.select(targetDiv).append("svg")
+    .attr("width", width + padding * 2)
+    .attr("height", height + padding * 2)
+    .append("g")
+    .attr("transform", "translate(" + width/2 + "," + height  + ")");
+ 
+  var arcO = d3.svg.arc()
+    .innerRadius(innerRadius)
+    .outerRadius(outerRadius);
+ 
+  var arcI = d3.svg.arc()
+    .innerRadius(innerRadiusI)
+    .outerRadius(outerRadiusI);
+ 
+  var arcH = d3.svg.arc()
+    .innerRadius(innerRadiusH)
+    .outerRadius(outerRadiusH);
+ 
+  // Draw outer Speedo arc
+  var arc1 = svg.append("path")
+     .datum({startAngle: startPct * t, endAngle: -startPct * t})
+     .attr("id","mainarc")
+     .style("fill",blue)
+     .attr("d",arcO);
+ 
+  // Grey Slice (below current progress target)
+  var end1 = startPct + onePct * progress ;
+  if ( startPct + end1  > 0 ) {
+    end1 = - startPct;
+  }
+  var greySlice = svg.append("path")
+     .datum({startAngle: startPct * t, endAngle: end1 * t})
+     .attr("id","greyslice")
+     .style("fill",lightgrey)
+     .attr("d",arcI);
+ 
+  // Put labels on the outer arc, 0%, progress, target, 100%)
+  if ( progress > 5 & target > 5 ) {
+    labelArc("0",2,labelOuter,"#ffffff");
+  }
+    labelArc(progress, progress - 1, labelOuter, "#ffffff");
+    labelArc(target, target -1, labelOuter, "#ffffff");
+  if ( target < 95 & progress < 95 ) {
+    labelArc("100",95, labelOuter, "#ffffff");
+  }
+ 
+   // Green Slice (current target range)
+  var end2 = end1 + onePct * targetSize;
+  if ( startPct + end2  > 0 ) {
+    end2 = - startPct;
+  }
+  var greenSlice = svg.append("path")
+     .datum({startAngle: end1 * t,  endAngle: end2 * t})
+     .attr("id","greenslice")
+     .style("fill",green)
+     .attr("d",arcI);
+ 
+  // Blue slice (exceed final target)
+  var blueSlice = svg.append("path")
+     .datum({startAngle: end2 * t,  endAngle: -startPct * t})
+     .attr("id","blueslice")
+     .style("fill",blue)
+     .attr("d",arcI);
+ 
+  // Add the title
+  svg.append("text")
+    .text(title)
+    .style("fill",blue)
+    .style("text-anchor","middle")
+    .style("font-size",titleFontSize)
+    .attr("x", 0)
+    .attr("y", -outerRadius - ( titleFontSize / 2) + ( padding /4));
+ 
+  // Add the subtitle
+  svg.append("text")
+    .text(subtitle)
+    .style("fill",grey)
+    .style("text-anchor","middle")
+    .style("font-size",subtitleFontSize)
+    .attr("x", 0)
+    .attr("y", outerRadiusH + (subtitleFontSize * 2) );
+ 
+  // Now draw and nimate the needle
+  var needleHub = svg.append("path")
+    .datum({startAngle: 0,  endAngle: t})
+    .style("fill","#ffffff")
+    .style("stroke",grey)
+    .style("stroke-width",needleHubWidth)
+    .attr("d",arcH);
+ 
+  var d = "M" + -(needleWidth / 2) + "," + 0;
+  d += " l" + needleWidth/4 + ","  + -needleLength;
+  d += " a5,5 0 0,1 " + needleWidth/2 + ",0";
+  d += " l" + needleWidth/4 + "," + needleLength;
+  d += " a5,5 0 0,1 " + -needleWidth + ",0";
+ 
+  // Draw the needle and rotate so it starts at the beginning of the speedo
+  var needle = svg.append("path")
+    .style("stroke", needleLine)
+    .style("fill", needleFill)
+    .attr("transform","rotate(" + startAngle + ")")
+    .attr("id","needle")
+    .attr("d",d);
+  labelArc(current,current-2, -1, "#444444")
+ 
+  // work out how far to move the needle
+  var needleAngle = ( current * oneDegree) + startAngle;
+ 
+  // Move the needle to the correct place
+  needle
+    .transition()
+    .ease("bounce")
+    .duration(1500)
+    .attrTween("transform", function() { return d3.interpolateString("rotate(" + startAngle + ")","rotate(" + needleAngle + ")"); });
+ 
+  function labelArc (label, value, rOffset, colour) {
+    var angle = value * oneDegree;
+   //Fudge the value if it is going to disappear off the dial
+   if ( value < 5 ) {
+     angle = ( 1 * oneDegree );
+   }
+   if ( value > 95 ) {
+     angle = ( 96 * oneDegree );
+   }
+ 
+    var text = svg.append("text")
+      .style("fill",colour)
+      .style("font-size",labelSize)
+ 
+      .attr("transform","rotate(" + angle + " )")
+      .attr("dy",rOffset);
+    text.append("textPath")
+      .attr("xlink:href","#greyslice")
+      .text(label);
+  }
+ 
+}
+ 
+</script>
