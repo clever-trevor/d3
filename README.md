@@ -4,7 +4,7 @@ Examples of D3 visualisations
 
 | Visualisation | Demo Link | Repo File |
 | --- | --- | --- |
-| **Battery**  Shows a battery with customisabale charge bars which light up against a 100% target | ![Battery](https://github.com/schmorgs/d3/tree/master/images/battery.jpg) | https://github.com/schmorgs/d3/blob/master/battery.html |
+| **Battery**  Shows a battery with customisabale charge bars which light up against a 100% target | ![Battery](https://github.com/schmorgs/d3/tree/master/images/battery.jpg?raw=true) | https://github.com/schmorgs/d3/blob/master/battery.html |
 | **Hierarchy**  A drillable horizontal hierarchy  | ![Hierarchy](https://github.com/schmorgs/d3/tree/master/images/hierarchy.jpg) | https://github.com/schmorgs/d3/blob/master/hierarchy.html | 
 | **Donut**  A 3 layered donut chart which shows target (outer ring), expected progres (middle ring), and current progess (inner ring) | ![Donut](https://github.com/schmorgs/d3/tree/master/images/donut.jpg) | https://github.com/schmorgs/d3/blob/master/donut.html | 
 | **Dual Value Box**  Shows two values in a box and with an overarching header. | ![Dual Value](https://github.com/schmorgs/d3/tree/master/images/dual-value.jpg) | https://github.com/schmorgs/d3/blob/master/dual-value.html |  
